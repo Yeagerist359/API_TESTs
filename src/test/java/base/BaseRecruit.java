@@ -8,14 +8,13 @@ import org.junit.jupiter.api.BeforeAll;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
 
-public class BaseTest {
+public class BaseRecruit {
 
     protected static final List<String> CANDIDATE_FIELDS = List.of("firstName", "middleName", "lastName", "email", "password", "address", "city","state","zip", "summary");
     protected static final List<String> POSITIONS_FIELDS = List.of("title", "address", "city", "state", "zip", "description", "company");

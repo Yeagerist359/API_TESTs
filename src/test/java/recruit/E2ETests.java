@@ -1,6 +1,6 @@
 package recruit;
 
-import base.BaseTest;
+import base.BaseRecruit;
 import io.restassured.http.ContentType;
 import io.restassured.module.jsv.JsonSchemaValidator;
 import io.restassured.module.jsv.JsonSchemaValidator;
@@ -19,7 +19,7 @@ import java.util.Random;
 import static io.restassured.RestAssured.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class E2ETests extends BaseTest {
+public class E2ETests extends BaseRecruit {
 
     private static String candidateToken;
     private static String candidateID;

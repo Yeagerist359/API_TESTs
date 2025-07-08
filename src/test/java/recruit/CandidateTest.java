@@ -1,6 +1,6 @@
 package recruit;
 
-import base.BaseTest;
+import base.BaseRecruit;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class CandidateTest  extends BaseTest {
+public class CandidateTest  extends BaseRecruit {
 
     // generate token for each test
     @BeforeEach
