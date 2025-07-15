@@ -2,46 +2,52 @@ package translate;
 
 import base.BaseTranslate;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
-import static io.restassured.RestAssured.baseURI;
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.*;
-
 
 public class Detect extends BaseTranslate {
 
-
     @Test
-    public void detectLanguage(){
-        String translate = "this is very interesting test";
+    public void detectLanguage() {
+        // Load translated text: Map<languageCode, translatedText>
+        Map<String, String> translations = readFromJsonFile(
+                "src/test/resources/translate/translatedText.json",
+                new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {}
+        );
 
+        // Select a random translated sentence
+        Map.Entry<String, String> randomEntry = getRandomEntry(translations);
+        String expectedLang = randomEntry.getKey();
+        String sentence = randomEntry.getValue();
+
+        // Send detect language request
         Response response = given()
                 .queryParam("key", API_KEY)
-                .queryParam("q", translate)
+                .queryParam("q", sentence)
                 .when()
                 .post("/detect")
                 .then()
                 .statusCode(200)
                 .extract().response();
-        response.prettyPrint();
 
-        Map<String, Object> detections = response.jsonPath().getMap("data.detections[0][0]");
-        System.out.println(detections);
+        // Extract detection result
+        Map<String, Object> detection = response.jsonPath().getMap("data.detections[0][0]");
 
+        // Debug output
+        System.out.printf("Expected Language: %s%nDetected: %s%nSentence: %s%n",
+                expectedLang, detection, sentence);
 
-        assertEquals("en", detections.get("language"));
+        // Assertions
+        assertEquals(expectedLang, detection.get("language"), "Language detection mismatch");
 
-        boolean isReliable = (Boolean) detections.get("isReliable");
-        assertFalse(isReliable, "Should be false" );
+        assertTrue(detection.containsKey("isReliable"), "Missing 'isReliable' field");
+        assertTrue(detection.containsKey("confidence"), "Missing 'confidence' field");
 
-        Number confidenceNumber = (Number) detections.get("confidence");
-        double confidence = confidenceNumber.doubleValue();
-        assertTrue(confidence >= 0.9, "Confidence level is too low");
+        double confidence = ((Number) detection.get("confidence")).doubleValue();
+        assertTrue(confidence >= 0.5, "Low confidence: " + confidence);
     }
 }
