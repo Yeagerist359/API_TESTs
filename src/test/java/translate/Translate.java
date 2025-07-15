@@ -1,67 +1,50 @@
 package translate;
 
 import base.BaseTranslate;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class Translate extends BaseTranslate {
 
     @Test
-    public void translateTest(){
-        String text = "тест про курицу" ;
-        String language = "en";
+    public void translateSingleSentenceToAllLanguages() {
+        // Load the first sentence from file
+        String sentence = readFromJsonFile(
+                "src/test/resources/translate/text2translate.json",
+                new TypeReference<List<String>>() {}
+        ).get(0);
 
-        Response response = given()
-                .queryParam("key", API_KEY)
-                .queryParam("q", text)
-                .queryParam("target", language)
-                .contentType(ContentType.JSON)
-                .when()
-                .post()
-                .then()
-                .statusCode(200)
-                .extract().response();
-//        response.prettyPrint();
+        // Use preloaded language list from BaseTranslate
+        List<String> languages = expectedLanguages;
 
-        String translatedText = response.jsonPath().getString("data.translations[0].translatedText");
-        String detectedSourceLanguage = response.jsonPath().getString("data.translations[0].detectedSourceLanguage");
+        // Store translations for each language
+        Map<String, String> translations = new HashMap<>();
 
+        for (String lang : languages) {
+            String translatedText = translate(sentence, lang);
 
-        assertEquals("chicken test", translatedText);
-        assertEquals("ru", detectedSourceLanguage);
+            // Validate translation
+            assertNotNull(translatedText, "Translation is null for lang: " + lang);
+            assertFalse(translatedText.isEmpty(), "Translation is empty for lang: " + lang);
+            if (!lang.equalsIgnoreCase("en")) {
+                assertNotEquals(sentence, translatedText, "Translation same as source for lang: " + lang);
+            }
+
+            translations.put(lang, translatedText);
+        }
+
+        // Save all translations to JSON
+        writeJsonToFile(translations, "src/test/resources/translate/translatedText.json");
+
+        // Final check: all languages processed
+        assertEquals(languages.size(), translations.size(), "Some languages are missing from the output.");
+
+        System.out.println("✅ Translations written to: src/test/resources/translate/translatedText.json");
     }
-
-    @Test
-    public void translateTestPayload(){
-        String[] text = {"тест про курицу", "тест про нарезанный лук", "тест про нарезанный холодное пиво"} ;
-        String language = "en";
-
-        Response response = given()
-                .queryParam("key", API_KEY)
-                .queryParam("q", text)
-                .queryParam("target", language)
-                .contentType(ContentType.JSON)
-                .when()
-                .post()
-                .then()
-                .statusCode(200)
-                .extract().response();
-        response.prettyPrint();
-
-        
-
-//        String translatedText = response.jsonPath().getString("data.translations[0].translatedText");
-//        String detectedSourceLanguage = response.jsonPath().getString("data.translations[0].detectedSourceLanguage");
-//
-//
-//        assertEquals("chicken test", translatedText);
-//        assertEquals("ru", detectedSourceLanguage);
-    }
-
-
 }
