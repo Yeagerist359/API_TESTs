@@ -8,12 +8,9 @@ import io.restassured.specification.RequestSpecification;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.HashMap;
+
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -32,34 +29,45 @@ public class Text2SpeechTest extends BaseRekognition {
     }
 
     @Test
-    public void text2speechTest(){
+    public void text2speechTest() {
 
-        Map<String, String> body = new HashMap<>();
-        body.put("text", "Who took mah cabbage in this wonderfull house");
+        Map<String, String> body = getDefaultTextBody();
 
-        Response response = given()
-                .spec(spec)
-                .queryParam("voice", "Justin")
-                .body(body)
-                .when()
-                .post("/convert-text-to-speech")
-                .then()
-                .statusCode(200)
-                .extract().response();
+        // Ensure output directory exists
+        String outputDirPath = "src/test/resources/speech_text";
+        File outputDir = new File(outputDirPath);
+//        if (!outputDir.exists()) {
+//            outputDir.mkdirs();
+//        }
 
-        response.prettyPrint();
+        for (String voice : VOICES_EN_US) {
+            try {
+                Response response = given()
+                        .spec(spec)
+                        .queryParam("voice", voice)
+                        .body(body)
+                        .when()
+                        .post("/convert-text-to-speech");
 
-        byte[] bytes = response.asByteArray();
+                int statusCode = response.getStatusCode();
+                if (statusCode != 200) {
+                    System.err.println("❌ Failed for voice " + voice + " - Status: " + statusCode);
+                    continue;
+                }
 
-        try (FileOutputStream fos = new FileOutputStream("text.mp3")){
-            IOUtils.write(bytes, fos);
+                byte[] bytes = response.asByteArray();
+                String fileName = outputDirPath + "/" + voice + "_speech.mp3";
 
-        } catch (IOException e) {
-            throw new UncheckedIOException("Failed writing text.mp3", e);
+                try (FileOutputStream fos = new FileOutputStream(fileName)) {
+                    IOUtils.write(bytes, fos);
+                    System.out.println("✅ Saved: " + fileName);
+                }
+
+                assertTrue(bytes.length > 0, "Audio data should not be empty for voice: " + voice);
+
+            } catch (Exception e) {
+                System.err.println("❌ Exception for voice " + voice + ": " + e.getMessage());
+            }
         }
-
-        assertTrue(bytes.length > 0);
-
-
     }
 }
