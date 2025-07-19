@@ -29,7 +29,7 @@ public class Speech2TextTest extends BaseRekognition {
         try {
             folder = new File(getClass().getClassLoader().getResource("speech_text").toURI());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load speech_text directory", e);
+            throw new RuntimeException("Failed  to load speech_text directory", e);
         }
         File[] mp3Files = folder.listFiles(file -> file.getName().toLowerCase().endsWith(".mp3"));
 
