@@ -33,12 +33,9 @@ public class Text2SpeechTest extends BaseRekognition {
 
         Map<String, String> body = getDefaultTextBody();
 
-        // Ensure output directory exists
         String outputDirPath = "src/test/resources/speech_text";
         File outputDir = new File(outputDirPath);
-//        if (!outputDir.exists()) {
-//            outputDir.mkdirs();
-//        }
+
 
         for (String voice : VOICES_EN_US) {
             try {
@@ -51,7 +48,7 @@ public class Text2SpeechTest extends BaseRekognition {
 
                 int statusCode = response.getStatusCode();
                 if (statusCode != 200) {
-                    System.err.println("❌ Failed for voice " + voice + " - Status: " + statusCode);
+                    System.err.println("Failed for voice " + voice + " - Status: " + statusCode);
                     continue;
                 }
 
@@ -60,13 +57,13 @@ public class Text2SpeechTest extends BaseRekognition {
 
                 try (FileOutputStream fos = new FileOutputStream(fileName)) {
                     IOUtils.write(bytes, fos);
-                    System.out.println("✅ Saved: " + fileName);
+                    System.out.println("Saved: " + fileName);
                 }
 
                 assertTrue(bytes.length > 0, "Audio data should not be empty for voice: " + voice);
 
             } catch (Exception e) {
-                System.err.println("❌ Exception for voice " + voice + ": " + e.getMessage());
+                System.err.println("Exception for voice " + voice + ": " + e.getMessage());
             }
         }
     }
